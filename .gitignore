@@ -16,6 +16,7 @@ apps/*/data/
 *.sqlite-shm
 *.sqlite-wal
 local-secret.bin
+.tools/
 
 .DS_Store
 Thumbs.db
