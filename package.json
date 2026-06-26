@@ -1,0 +1,14 @@
+{
+  "name": "crewforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "One local workspace for all your text AI models.",
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "pnpm build && pnpm --filter @crewforge/server start",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r typecheck"
+  },
+  "devDependencies": {}
+}
