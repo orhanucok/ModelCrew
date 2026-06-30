@@ -3,8 +3,27 @@
   "version": "0.1.0",
   "private": true,
   "description": "One local workspace for all your text AI models.",
-  "packageManager": "pnpm@11.7.0",
+  "author": "orhanucok",
   "license": "MIT",
+  "homepage": "https://github.com/orhanucok/ModelCrew#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orhanucok/ModelCrew.git"
+  },
+  "bugs": {
+    "url": "https://github.com/orhanucok/ModelCrew/issues"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "multi-agent",
+    "openrouter",
+    "ollama",
+    "anthropic",
+    "openai",
+    "local-first"
+  ],
+  "packageManager": "pnpm@11.7.0",
   "engines": {
     "node": ">=22.5.0",
     "pnpm": ">=11.0.0"

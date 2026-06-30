@@ -1,5 +1,8 @@
 # CrewForge
 
+[![CI](https://github.com/orhanucok/ModelCrew/actions/workflows/ci.yml/badge.svg)](https://github.com/orhanucok/ModelCrew/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 One local workspace for all your text AI models.
 
 CrewForge is a modern localhost web app for connecting text/code AI providers, discovering models, running server-side health checks, separating free/paid/broken models, selecting a usable crew, and running a planned multi-agent workflow with saved run history. It provides a premium, responsive interface and robust local-first secure storage.
@@ -117,3 +120,7 @@ Reply with exactly: OK
 - Paid model use is visible but remains locked for some automated selection paths; automatic paid fallback is experimental.
 - Public no-key endpoints can be slow, unavailable, or rate limited depending on external factors.
 - OS keychain mode is represented in settings but securely falls back to session-only behavior to avoid cross-platform native dependency friction.
+
+## License
+
+Released under the [MIT License](LICENSE).
