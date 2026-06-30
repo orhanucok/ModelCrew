@@ -2,6 +2,7 @@ import type { AIProvider, CrewModel, ModelStatus } from "./providerTypes.js";
 import { getProviderKey } from "../security/keyStorage.js";
 import { recommendedRolesFor, scoreCapabilities } from "../models/capabilityScoring.js";
 import { recommendationScore } from "../models/recommendationScoring.js";
+import { withTimeout } from "../../utils/timeout.js";
 
 export class AnthropicProvider implements AIProvider {
   id = "anthropic" as const;
@@ -48,7 +49,57 @@ export class AnthropicProvider implements AIProvider {
     return getProviderKey(this.id) ? "paid_locked" : "key_required";
   }
 
-  async callModel(): ReturnType<AIProvider["callModel"]> {
-    throw Object.assign(new Error("Anthropic calls are coming later."), { status: 402 });
+  async callModel(args: {
+    modelId: string;
+    messages: import("./providerTypes.js").AIMessage[];
+    temperature?: number;
+    timeoutMs?: number;
+    abortSignal?: AbortSignal;
+  }): ReturnType<AIProvider["callModel"]> {
+    const apiKey = getProviderKey(this.id);
+    if (!apiKey) {
+      throw Object.assign(new Error("Anthropic API key is required."), { status: 401 });
+    }
+
+    const { Anthropic } = await import("@anthropic-ai/sdk");
+    const client = new Anthropic({ apiKey });
+
+    // Anthropic requires system prompt to be passed separately
+    const systemMessages = args.messages.filter(m => m.role === "system");
+    const system = systemMessages.map(m => m.content).join("\n\n");
+
+    const userAndAssistantMessages = args.messages
+      .filter(m => m.role !== "system")
+      .map(m => ({
+        role: m.role as "user" | "assistant",
+        content: m.content
+      }));
+
+    // Extract the actual model name (remove the "anthropic:" prefix)
+    const model = args.modelId.replace("anthropic:", "");
+
+    try {
+      const response = await withTimeout(
+        (signal) => client.messages.create({
+          model,
+          messages: userAndAssistantMessages,
+          system: system || undefined,
+          max_tokens: 4096,
+          temperature: args.temperature ?? 0.7,
+        }, { signal }),
+        args.timeoutMs ?? 60_000,
+        args.abortSignal
+      );
+
+      const textBlock = response.content.find(c => c.type === "text");
+      const text = textBlock && textBlock.type === "text" ? textBlock.text : "";
+
+      return {
+        text,
+        raw: response,
+      };
+    } catch (error: any) {
+      throw Object.assign(new Error(error?.message || "Anthropic call failed"), { status: error?.status || 500 });
+    }
   }
 }

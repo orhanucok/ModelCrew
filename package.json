@@ -4,6 +4,11 @@
   "private": true,
   "description": "One local workspace for all your text AI models.",
   "packageManager": "pnpm@11.7.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.5.0",
+    "pnpm": ">=11.0.0"
+  },
   "scripts": {
     "dev": "pnpm build && pnpm --filter @crewforge/server start",
     "build": "pnpm -r build",

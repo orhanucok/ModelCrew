@@ -17,6 +17,17 @@ import { redactSecrets } from "../security/secretsRedactor.js";
 import { getProvider } from "../providers/providerRegistry.js";
 import { estimateTokens } from "../../utils/tokenEstimate.js";
 
+const activeRuns = new Map<string, AbortController>();
+
+export function cancelRun(runId: string): boolean {
+  const controller = activeRuns.get(runId);
+  if (controller) {
+    controller.abort();
+    return true;
+  }
+  return false;
+}
+
 function assignmentFor(assignments: AgentAssignment[], role: AgentRole): AgentAssignment {
   const assignment = assignments.find((item) => item.role === role);
   if (!assignment) throw new Error(`No assignment for ${role}.`);
@@ -253,6 +264,9 @@ export async function runCrew(runId: string): Promise<void> {
 
   emitRunEvent({ type: "run_started", runId: run.id, timestamp: Date.now() });
 
+  const abortController = new AbortController();
+  activeRuns.set(runId, abortController);
+
   try {
     if (!run.selectedModels.length) {
       failRun(
@@ -278,14 +292,16 @@ export async function runCrew(runId: string): Promise<void> {
       run,
       assignment: assignmentFor(assignments, "orchestrator"),
       roleInstruction:
-        "Understand the task, choose a strategy, identify constraints, and hand off a compact plan request to the planner."
+        "Understand the task, choose a strategy, identify constraints, and hand off a compact plan request to the planner.",
+      abortSignal: abortController.signal
     });
     recordOutput(run, orchestratorOutput);
 
     const plannerOutput = await runAgentStep({
       run,
       assignment: assignmentFor(assignments, "planner"),
-      roleInstruction: plannerInstruction
+      roleInstruction: plannerInstruction,
+      abortSignal: abortController.signal
     });
     run.blackboard.plan = plannerOutput.content;
     run.blackboard.subtasks = subtasksFromPlan(plannerOutput.content);
@@ -314,7 +330,8 @@ export async function runCrew(runId: string): Promise<void> {
           subtask?.description ??
           `Alternative solution perspective ${index + 1}: produce a useful independent pass on the user's task.`,
         roleInstruction:
-          "Act as a Worker. Produce concrete output for the assigned subtask or perspective. Do not review; focus on useful work."
+          "Act as a Worker. Produce concrete output for the assigned subtask or perspective. Do not review; focus on useful work.",
+        abortSignal: abortController.signal
       });
       recordOutput(run, workerOutput);
     }
@@ -323,7 +340,8 @@ export async function runCrew(runId: string): Promise<void> {
     const reviewerOutput = await runAgentStep({
       run,
       assignment: assignmentFor(assignments, "reviewer"),
-      roleInstruction: reviewerInstruction
+      roleInstruction: reviewerInstruction,
+      abortSignal: abortController.signal
     });
     run.blackboard.reviewNotes.push(reviewerOutput.content);
     recordOutput(run, reviewerOutput);
@@ -345,7 +363,8 @@ export async function runCrew(runId: string): Promise<void> {
         assignment: activeWorkers[0],
         roleInstruction:
           "Act as a Worker and revise the worker outputs using reviewer notes. Focus only on material improvements and unresolved risks.",
-        reviewerNotes: reviewerOutput.issues.length ? reviewerOutput.issues : [reviewerOutput.content]
+        reviewerNotes: reviewerOutput.issues.length ? reviewerOutput.issues : [reviewerOutput.content],
+        abortSignal: abortController.signal
       });
       recordOutput(run, repairOutput);
     }
@@ -354,7 +373,8 @@ export async function runCrew(runId: string): Promise<void> {
     const synthesizerOutput = await runAgentStep({
       run,
       assignment: assignmentFor(assignments, "synthesizer"),
-      roleInstruction: synthesizerInstruction
+      roleInstruction: synthesizerInstruction,
+      abortSignal: abortController.signal
     });
     run.blackboard.synthesisNotes.push(synthesizerOutput.content);
     run.blackboard.finalResult = synthesizerOutput.content;
@@ -375,7 +395,13 @@ export async function runCrew(runId: string): Promise<void> {
       stopReason: run.stopReason,
       timestamp: Date.now()
     });
-  } catch (error) {
-    failRun(run, asUserMessage(error));
+  } catch (error: any) {
+    if (error.name === "AbortError" || abortController.signal.aborted) {
+      failRun(run, "Run was stopped by the user.", "aborted");
+    } else {
+      failRun(run, asUserMessage(error));
+    }
+  } finally {
+    activeRuns.delete(runId);
   }
 }

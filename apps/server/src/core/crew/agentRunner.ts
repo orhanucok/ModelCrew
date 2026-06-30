@@ -92,6 +92,7 @@ async function callRole(args: {
   reviewerNotes?: string[];
   stricter?: boolean;
   retryCount: number;
+  abortSignal?: AbortSignal;
 }): Promise<{ rawText: string; startedAt: number }> {
   const provider = getProvider(args.model.provider);
   const startedAt = Date.now();
@@ -117,7 +118,8 @@ async function callRole(args: {
       stricter: args.stricter
     }),
     temperature: args.role === "reviewer" ? 0.1 : 0.2,
-    timeoutMs: 60_000
+    timeoutMs: 60_000,
+    abortSignal: args.abortSignal
   });
 
   const rawText = response.text.trim();
@@ -139,6 +141,7 @@ export async function runAgentStep(args: {
   roleInstruction: string;
   currentSubtask?: string;
   reviewerNotes?: string[];
+  abortSignal?: AbortSignal;
 }): Promise<AgentOutput> {
   let model = args.run.selectedModels.find((candidate) => candidate.id === args.assignment.modelId);
   if (!model) {
@@ -156,7 +159,8 @@ export async function runAgentStep(args: {
         roleInstruction: args.roleInstruction,
         currentSubtask: args.currentSubtask,
         reviewerNotes: args.reviewerNotes,
-        retryCount
+        retryCount,
+        abortSignal: args.abortSignal
       });
 
       let invalidStructure = !extractJson(firstCall.rawText);
@@ -170,7 +174,8 @@ export async function runAgentStep(args: {
           currentSubtask: args.currentSubtask,
           reviewerNotes: args.reviewerNotes,
           stricter: true,
-          retryCount
+          retryCount,
+          abortSignal: args.abortSignal
         });
         invalidStructure = !extractJson(firstCall.rawText);
       }

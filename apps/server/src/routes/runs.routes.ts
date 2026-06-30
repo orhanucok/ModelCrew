@@ -1,10 +1,15 @@
 import { Router } from "express";
 import { clearRuns, deleteRun, getRun, listRuns } from "../core/storage/runsRepository.js";
 import { getStoredRunEvents, subscribeToRunEvents } from "../core/crew/runEvents.js";
-import { createForgeCrewRun, runCrew } from "../core/crew/orchestrator.js";
+import { createForgeCrewRun, runCrew, cancelRun } from "../core/crew/orchestrator.js";
 import { userError } from "../utils/errors.js";
 
 export const runsRouter = Router();
+
+runsRouter.delete("/:runId/cancel", (req, res) => {
+  const stopped = cancelRun(req.params.runId);
+  res.json({ ok: stopped });
+});
 
 runsRouter.get("/", (_req, res) => {
   res.json({ runs: listRuns() });

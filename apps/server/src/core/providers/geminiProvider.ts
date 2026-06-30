@@ -119,7 +119,8 @@ export class GeminiProvider implements AIProvider {
             })
           }
         ),
-      args.timeoutMs ?? 30_000
+      args.timeoutMs ?? 30_000,
+      args.abortSignal
     );
 
     if (!response.ok) {

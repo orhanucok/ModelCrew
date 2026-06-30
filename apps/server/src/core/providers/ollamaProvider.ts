@@ -93,7 +93,8 @@ export class OllamaProvider implements AIProvider {
             options: { temperature: args.temperature ?? 0.2 }
           })
         }),
-      args.timeoutMs ?? 30_000
+      args.timeoutMs ?? 30_000,
+      args.abortSignal
     );
 
     if (!response.ok) {

@@ -73,7 +73,8 @@ export class XAIProvider implements AIProvider {
       modelId: strip(args.modelId),
       messages: args.messages,
       temperature: args.temperature,
-      timeoutMs: args.timeoutMs
+      timeoutMs: args.timeoutMs,
+      abortSignal: args.abortSignal
     });
   }
 }

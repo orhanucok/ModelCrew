@@ -2,7 +2,22 @@
 
 One local workspace for all your text AI models.
 
-CrewForge is a localhost web app for connecting text/code AI providers, discovering models, running server-side health checks, separating free/paid/broken models, selecting a usable crew, and running a planned multi-agent workflow with saved run history.
+CrewForge is a modern localhost web app for connecting text/code AI providers, discovering models, running server-side health checks, separating free/paid/broken models, selecting a usable crew, and running a planned multi-agent workflow with saved run history. It provides a premium, responsive interface and robust local-first secure storage.
+
+## Features
+
+- **Multi-Provider Support:** Seamlessly connect to G4F, OpenRouter, Gemini, Groq, OpenAI, xAI, Ollama, and Anthropic.
+- **Two Chat Modes:**
+  - *Direct Chat:* Converse with a single AI model.
+  - *Forge Crew:* Automate complex tasks using a multi-agent workflow (Orchestrator → Planner → Workers → Reviewer → Synthesizer).
+- **Secure by Default:** API keys are encrypted and stored locally. They are never sent to the frontend or included in logs.
+- **Run History:** Easily review past workflows, agent outputs, and final results.
+- **Premium UI:** Designed with modern web aesthetics, including glassmorphism, fluid animations, and robust light/dark mode support.
+
+## Prerequisites
+
+- **Node.js 22.5+** (the server uses the built-in `node:sqlite` module).
+- **pnpm 11+** (`npm install -g pnpm`).
 
 ## Run Locally
 
@@ -19,6 +34,17 @@ http://127.0.0.1:8787
 
 The local server serves both the API and the built React app from the same localhost origin.
 
+## Project Structure
+
+```txt
+crewforge/
+├── apps/
+│   ├── server/   # Node + Express + TypeScript API, SQLite storage, provider adapters, crew orchestration
+│   └── web/      # React + Vite + TypeScript frontend
+├── package.json  # pnpm workspace root with dev/build/typecheck scripts
+└── pnpm-workspace.yaml
+```
+
 ## What Is Included
 
 - React + Vite + TypeScript frontend.
@@ -28,7 +54,7 @@ The local server serves both the API and the built React app from the same local
 - Chat page with two usage modes:
   - Chat Mode: send a message directly to one selected model.
   - Forge Crew Mode: manually assign selected models to Orchestrator, Planner, Workers, Reviewer, and Synthesizer.
-- Provider adapters for G4F public endpoints, OpenRouter, Gemini, Groq, OpenAI, xAI, Ollama, plus a safe Anthropic stub.
+- Provider adapters for G4F public endpoints, OpenRouter, Gemini, Groq, OpenAI, xAI, Ollama, and Anthropic.
 - Local API key storage modes, including encrypted local storage and session-only storage.
 - Secret redaction for logs, SSE events, and run storage.
 - Model discovery, text/code filtering, health-check queue, health cache, and provider cooldowns.
@@ -88,8 +114,6 @@ Reply with exactly: OK
 
 ## Current Limitations
 
-- Anthropic is a non-crashing provider stub in this MVP.
-- Paid model use is visible but remains locked; automatic paid fallback is not implemented.
-- Public no-key endpoints can be slow, unavailable, or rate limited.
-- Stop run currently stops the browser stream, not the already-started server-side run.
-- OS keychain mode is represented in settings but falls back to session-only behavior until a keychain integration is added.
+- Paid model use is visible but remains locked for some automated selection paths; automatic paid fallback is experimental.
+- Public no-key endpoints can be slow, unavailable, or rate limited depending on external factors.
+- OS keychain mode is represented in settings but securely falls back to session-only behavior to avoid cross-platform native dependency friction.

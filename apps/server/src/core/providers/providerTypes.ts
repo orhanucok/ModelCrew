@@ -122,6 +122,7 @@ export type AIProvider = {
     messages: AIMessage[];
     temperature?: number;
     timeoutMs?: number;
+    abortSignal?: AbortSignal;
   }): Promise<{
     text: string;
     raw?: unknown;

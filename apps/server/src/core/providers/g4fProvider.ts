@@ -132,7 +132,8 @@ export class G4FProvider implements AIProvider {
       modelId: providerModel,
       messages: args.messages,
       temperature: args.temperature,
-      timeoutMs: args.timeoutMs
+      timeoutMs: args.timeoutMs,
+      abortSignal: args.abortSignal
     });
   }
 }

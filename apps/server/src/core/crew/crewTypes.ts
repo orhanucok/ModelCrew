@@ -20,6 +20,7 @@ export type RunStopReason =
   | "reviewer_approved"
   | "user_approval_required"
   | "no_usable_models"
+  | "aborted"
   | "fatal_error";
 
 export type ChatMode = "chat" | "forge_crew";

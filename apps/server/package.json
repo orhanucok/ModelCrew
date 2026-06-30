@@ -11,8 +11,10 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.107.0",
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "keytar": "^7.9.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
